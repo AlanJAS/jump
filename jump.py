@@ -36,6 +36,8 @@ from cur import *
 from gettext import gettext as _
 
 
+
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 
@@ -716,8 +718,8 @@ class SolitaireMain:
                 self.allsprites=pygame.sprite.RenderPlain(button1)
                 self.allsprites.draw(self.screen)
 
-            if (helpoff.rect.collidepoint(pygame.mouse.get_pos()) and rollover_onces==0):
-                rollover_onces=1
+            if (helpoff.rect.collidepoint(pygame.mouse.get_pos()) and rollover_once==0):
+                rollover_once=1
                 self.allspritess.remove(button1)
                 helpoff = simple_button(970,614,'HelpOn.png',None)
                 self.allspritess=pygame.sprite.RenderPlain(helpoff)
@@ -725,7 +727,7 @@ class SolitaireMain:
 
             elif not (helpoff.rect.collidepoint(pygame.mouse.get_pos())):
 
-                rollover_onces=0
+                rollover_once=0
                 helpoff = simple_button(970,614,'HelpOff.png',None)
                 self.allspritess=pygame.sprite.RenderPlain(helpoff)
                 self.allspritess.draw(self.screen)
