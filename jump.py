@@ -35,6 +35,10 @@ from pygame.locals import *
 from cur import *
 from gettext import gettext as _
 
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+
 BROWN_COLOR = (88, 47, 27)
 doneTest = 0
 global myMatrix
@@ -77,7 +81,7 @@ sound_enable = True
 
 def load_image(name, colorkey=None):
     
-    fullname = os.path.join('data', name)
+    fullname = os.path.join(DATA_DIR, name)
     
     try:
         image = pygame.image.load(fullname)
@@ -99,12 +103,12 @@ def load_sound(name):
 
     sound = NoneSound()
 
-    fullname = os.path.join('data', name)
+    fullname = os.path.join(DATA_DIR, name)
     try:
         sound = pygame.mixer.Sound(fullname)
     except pygame.error as message:
         print('Cannot load sound:', fullname)
-        #raise SystemExit, message
+
     return sound
 
 class board(object):
@@ -137,7 +141,7 @@ class Marble(pygame.sprite.Sprite):
             marbleColor = 23 
         pngLoad = str(marbleColor)
         pngLoad = pngLoad + '.png'
-        self.image = load_image(pngLoad,-1)
+        self.image = load_image(pngLoad, (255,255,255))
         self.rect = self.image.get_rect()
                 
         if rect != None:
@@ -204,8 +208,8 @@ class SolitaireMain:
             image = load_image(str(i) + '.png', color)
             self.marble_images.append(image)
 
-        bl=pygame.image.load("data/blank.png")
-        z=pygame.image.load("data/25.png")
+        bl=load_image("blank.png", (255,255,255))
+        z=load_image("25.png")
    
         self.marble_images.append(bl)#number25
         self.marble_images.append(z)        
@@ -221,15 +225,15 @@ class SolitaireMain:
         
         #call reset funnction
         self.reset()
-        self.helpscreen = pygame.image.load("data/Instructions.png")
+        self.helpscreen = load_image("Instructions.png")
         self.flags=[]
-        self.flags.append(pygame.image.load("data/Flag01.png").convert())
-        self.flags.append(pygame.image.load("data/Flag02.png").convert())        
-        self.flags.append(pygame.image.load("data/Flag03.png").convert())
-        self.flags.append(pygame.image.load("data/Flag04.png").convert())
-        self.flags.append(pygame.image.load("data/Flag05.png").convert())
-        self.flags.append(pygame.image.load("data/Flag06.png").convert())
-        self.flags.append(pygame.image.load("data/Flag07.png").convert())
+        self.flags.append(load_image("Flag01.png"))
+        self.flags.append(load_image("Flag02.png"))
+        self.flags.append(load_image("Flag03.png"))
+        self.flags.append(load_image("Flag04.png"))
+        self.flags.append(load_image("Flag05.png"))
+        self.flags.append(load_image("Flag06.png"))
+        self.flags.append(load_image("Flag07.png"))
         
         
         self.level_sounds=[]
@@ -639,7 +643,7 @@ class SolitaireMain:
 
         self.load_things()
 
-        self.background = pygame.image.load("data/Background2.png")
+        self.background = load_image("Background2.png")
         self.play_var=0
         self.help_var=0
         self.play_sound=False
@@ -668,10 +672,10 @@ class SolitaireMain:
         self.screen.blit(self.special_marbles[next_marble-1],(1067,45))
         
         self.rollover_images=[]
-        self.rollover_images.append(pygame.image.load("data/Arrow1.png"))
-        self.rollover_images.append(pygame.image.load("data/Arrow2.png"))
-        self.rollover_images.append(pygame.image.load("data/Arrow3.png"))
-        self.rollover_images.append(pygame.image.load("data/Arrow4.png"))
+        self.rollover_images.append(load_image("Arrow1.png"))
+        self.rollover_images.append(load_image("Arrow2.png"))
+        self.rollover_images.append(load_image("Arrow3.png"))
+        self.rollover_images.append(load_image("Arrow4.png"))
         pygame.display.update()
         fpsClock.tick(FPS)
         while run:
