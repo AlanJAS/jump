@@ -103,12 +103,14 @@ def load_sound(name):
 
     return sound
 
-class board(object):
+class Board(object):
+
+    # 0 empty, 1 marble, 2 off-board.
 
     def __init__(self):
-        self.RESERVED = 0
-        self.EMPTY = 1
-        self.MARBLE = 2
+        self.RESERVED = 2
+        self.EMPTY = 0
+        self.MARBLE = 1
 
     def getLayout(self):
         return [[0,0,2,2,2,0,0],\
@@ -126,11 +128,7 @@ class Marble(pygame.sprite.Sprite):
 
     def __init__(self, rect=None):
         pygame.sprite.Sprite.__init__(self)
-        marbleColor = random.random()
-        marbleColor = marbleColor * 10
-        marbleColor = int(marbleColor)
-        if marbleColor > 23:
-            marbleColor = 23
+        marbleColor = random.randrange(0, 23)
         pngLoad = str(marbleColor)
         pngLoad = pngLoad + '.png'
         self.image = load_image(pngLoad, (255,255,255))
@@ -914,7 +912,7 @@ class SolitaireMain:
         n=7
         row=106 #120
 
-        marbleColor = random.randrange(0,23)
+        marbleColor = random.randrange(0, 23)
 
         number=0
 
