@@ -4,7 +4,9 @@ Cells use the original game encoding: 0 empty, 1 marble, 2 off-board.
 Coordinates are always (row, column).
 """
 
-EMPTY, MARBLE, RESERVED = range(3)
+EMPTY = 0
+MARBLE = 1
+RESERVED = 2
 DIRECTIONS = ((-2, 0), (2, 0), (0, -2), (0, 2))
 BOARD_ORIGIN = (300, 120)
 CELL_SIZE = 90
