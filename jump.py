@@ -38,7 +38,7 @@ except (ImportError, ValueError):
 
 from levels import LEVELS
 from model import Board
-from rules import BOARD_ORIGIN, CELL_SIZE
+from rules import CELL_SIZE
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
@@ -276,12 +276,17 @@ class SolitaireMain:
                     surface, (max_width, max(1, int(surface.get_height() * ratio))))
             self.screen.blit(surface, surface.get_rect(center=(panel.centerx, y)))
 
+    def marble_rect(self, cell):
+        """Use the same artwork geometry for marbles and destination hints."""
+        row, column = cell
+        return self.marble_images[self.board.color].get_rect(
+            topleft=(SPRITE_ORIGIN[0] + column * CELL_SIZE,
+                     SPRITE_ORIGIN[1] + row * CELL_SIZE))
+
     def draw_marble(self, cell, position=None):
         image = self.marble_images[self.board.color]
         if position is None:
-            row, column = cell
-            rect = image.get_rect(topleft=(SPRITE_ORIGIN[0] + column * CELL_SIZE,
-                                          SPRITE_ORIGIN[1] + row * CELL_SIZE))
+            rect = self.marble_rect(cell)
         else:
             rect = image.get_rect(center=position)
         self.screen.blit(image, rect)
@@ -297,9 +302,7 @@ class SolitaireMain:
             # Legal targets are derived from exactly the same rules as dropping.
             for start, end in self.board.legal_moves():
                 if start == self.selected:
-                    row, column = end
-                    center = (BOARD_ORIGIN[0] + column * CELL_SIZE + CELL_SIZE // 2,
-                              BOARD_ORIGIN[1] + row * CELL_SIZE + CELL_SIZE // 2)
+                    center = self.marble_rect(end).center
                     pygame.draw.circle(self.screen, BROWN_COLOR, center, 24, 3)
             self.draw_marble(self.selected, position)
         remaining = self.board.marble_count()
