@@ -136,6 +136,8 @@ class SolitaireMain:
         self.font = pygame.font.Font(None, 50)
         self.marble_images = [load_image('%d.png' % i, (0, 0, 0))
                               for i in range(23)]
+        self.special_marbles = [load_image(f'S{i}.png')
+                              for i in range(1, 37)]
         self.flags = [load_image('Flag%02d.png' % i) for i in range(1, 8)]
         self.target_image = load_image('S1.png')
         self.level_sounds = [load_sound('%d.ogg' % i) for i in range(8)]
