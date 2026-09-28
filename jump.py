@@ -44,15 +44,6 @@ FPS = 30
 
 BROWN_COLOR = (88, 47, 27)
 doneTest = 0
-global myMatrix
-
-myMatrix = [[2,2,0,0,0,2,2],
-           [2,2,0,1,0,2,2],
-           [0,0,1,1,1,0,0],
-           [0,0,0,1,0,0,0],
-           [0,0,0,1,0,0,0],
-           [2,2,0,0,0,2,2],
-           [2,2,0,0,0,2,2]]
 
 global myMatrix_colors
 myMatrix_colors=[[0,0,0,0,0,0,0],
@@ -63,8 +54,6 @@ myMatrix_colors=[[0,0,0,0,0,0,0],
                  [0,0,0,0,0,0,0],
                  [0,0,0,0,0,0,0]]
 
-
-myMatrixGridSize = len(myMatrix[0])
 marblesLeft = 0
 movesLeft = 0
 _font = 'VeraSe.ttf'
@@ -188,6 +177,9 @@ class SolitaireMain:
         self.height = height
         self.actual_level = 0
         self.clock = pygame.time.Clock()
+        self.board = None
+        self.myMatrixGridSize = 0
+        self.reset_board()
         
 
     def change_sound(self, sound):
@@ -283,10 +275,12 @@ class SolitaireMain:
         if level is not None:
             self.actual_level = level
 
-        global myMatrix
+        
         global myMatrix_colors
 
-        myMatrix = LEVELS[self.actual_level]
+        self.board = [list(row) for row in LEVELS[self.actual_level]]
+        
+        self.myMatrixGridSize = len(self.board[0])
 
         myMatrix_colors=[[0,0,0,0,0,0,0],
                          [0,0,0,0,0,0,0],
@@ -319,7 +313,7 @@ class SolitaireMain:
 
         if(x>=0 and x<=6 and y>=0 and y<=6):
 
-            if(myMatrix[y][x]==0):
+            if(self.board[y][x]==0):
                 self.final_x=y
                 self.final_y=x
             else:
@@ -345,14 +339,14 @@ class SolitaireMain:
         neighborStateRow = 99
         neighborStateColumn = 99
         validJump = 99
-        self.matrixPosStart=myMatrix[w][x]
-        self.matrixPosEnd=myMatrix[y][z]
+        self.matrixPosStart=self.board[w][x]
+        self.matrixPosEnd=self.board[y][z]
 
         if w == y:
             if x > z:
                 neighborStateRow = w
                 neighborStateColumn = x - 1
-                neighborState = myMatrix[neighborStateRow][neighborStateColumn]
+                neighborState = self.board[neighborStateRow][neighborStateColumn]
                 if (self.xInput - self.zInput) > 2:
                     validJump = 0
                 else:
@@ -360,7 +354,7 @@ class SolitaireMain:
             elif x<z:
                 neighborStateRow = w
                 neighborStateColumn = x + 1
-                neighborState = myMatrix[neighborStateRow][neighborStateColumn]
+                neighborState = self.board[neighborStateRow][neighborStateColumn]
                 if (self.zInput - self.xInput) > 2:
                     validJump = 0
                 else:
@@ -370,7 +364,7 @@ class SolitaireMain:
             if w > y:
                 neighborStateRow = w - 1
                 neighborStateColumn = x
-                neighborState = myMatrix[neighborStateRow][neighborStateColumn]
+                neighborState = self.board[neighborStateRow][neighborStateColumn]
                 if (self.wInput - self.yInput) > 2:
                     validJump = 0
                 else:
@@ -378,7 +372,7 @@ class SolitaireMain:
             elif w<y:
                 neighborStateRow = w + 1
                 neighborStateColumn = x
-                neighborState = myMatrix[neighborStateRow][neighborStateColumn]
+                neighborState = self.board[neighborStateRow][neighborStateColumn]
                 if (self.yInput - self.wInput) > 2:
                     validJump = 0
                 else:
@@ -388,16 +382,16 @@ class SolitaireMain:
             self.OutofRange=True
 
         if self.matrixPosStart != 2 and self.matrixPosEnd == 0 and neighborState == 1 and validJump == 1:
-            myMatrix[w][x] = 0
-            myMatrix[neighborStateRow][neighborStateColumn] = 0
-            myMatrix[y][z] = 1
+            self.board[w][x] = 0
+            self.board[neighborStateRow][neighborStateColumn] = 0
+            self.board[y][z] = 1
             myMatrix_colors[y][z]=myMatrix_colors[w][x]
             if sound_enable:
                 self.move_sound.play()
 
         else:
              if(self.OutofRange==True):
-                 myMatrix[w][x]=1
+                 self.board[w][x]=1
 
         self.screen.blit(self.background,(0,0))
         row=106
@@ -406,7 +400,7 @@ class SolitaireMain:
             for i in range(7):
                 self.pngNumber=myMatrix_colors[k][i]
 
-                if(myMatrix[k][i]==1):
+                if(self.board[k][i]==1):
                     if self.pngNumber==marbleColor:
                         self.screen.blit(self.marble_images[self.pngNumber],(start,row))
                     else:
@@ -435,8 +429,8 @@ class SolitaireMain:
 
         #print "marble  color is :",marbleColor
         if(x>=0 and x<7 and y>=0 and y<7):
-            if self.pressed==False and myMatrix[y][x]==1:
-                myMatrix[y][x]=0
+            if self.pressed==False and self.board[y][x]==1:
+                self.board[y][x]=0
                 self.Number=myMatrix_colors[y][x]
 
                 if self.Number>=100:
@@ -465,7 +459,7 @@ class SolitaireMain:
             for i in range(7):
                 self.pngNumber=myMatrix_colors[k][i]
 
-                if(myMatrix[k][i]==1):
+                if(self.board[k][i]==1):
 
                     if self.pngNumber==marbleColor:
                         self.screen.blit(self.marble_images[self.pngNumber],(start,row))
@@ -508,7 +502,7 @@ class SolitaireMain:
             start=292
             for i in range(7):
                 self.pngNumber=myMatrix_colors[k][i]
-                if(myMatrix[k][i]==1):
+                if(self.board[k][i]==1):
                     if self.pngNumber==marbleColor:
                         self.screen.blit(self.marble_images[self.pngNumber],(start,row))
                     else:
@@ -793,23 +787,23 @@ class SolitaireMain:
         marblesLeft = 0
         movesLeft = 0
         i = 0
-        while i < myMatrixGridSize: # should eventually be length of rows
+        while i < self.myMatrixGridSize: # should eventually be length of rows
             j = 0
-            while j < myMatrixGridSize: # should eventually be length of columns
-                m = myMatrix[i][j]
+            while j < self.myMatrixGridSize: # should eventually be length of columns
+                m = self.board[i][j]
                 if m == 1: # there is a marble in the slot
                     marblesLeft = marblesLeft + 1
                     boundsCheck = i - 1
                     if boundsCheck >= 0:
-                        mn = myMatrix[i -1][j]
+                        mn = self.board[i -1][j]
                         if mn == 0: # no move directly above
                             pass
                         else:
                             pass
                         boundsCheck = i - 2
                         if boundsCheck >= 0:
-                            mn = myMatrix[i - 2][j]
-                            mn2 = myMatrix[i - 1][j]
+                            mn = self.board[i - 2][j]
+                            mn2 = self.board[i - 1][j]
                             if mn == 0 and mn2 == 1:
                                 #print "There is a move above."
                                 movesLeft = movesLeft + 1
@@ -818,16 +812,16 @@ class SolitaireMain:
                     else: # there is a move above, but is the slot above that empty
                         pass
                     boundsCheck = i + 1
-                    if boundsCheck < myMatrixGridSize: # needs to be drawn from the number of rows eventually
-                        mn = myMatrix[i + 1][j]
+                    if boundsCheck < self.myMatrixGridSize: # needs to be drawn from the number of rows eventually
+                        mn = self.board[i + 1][j]
                         if mn == 0: # no move directly below
                             pass
                         else:
                             pass
                         boundsCheck = i + 2
-                        if boundsCheck < myMatrixGridSize:
-                            mn = myMatrix[i + 2][j]
-                            mn2 = myMatrix[i + 1][j]
+                        if boundsCheck < self.myMatrixGridSize:
+                            mn = self.board[i + 2][j]
+                            mn2 = self.board[i + 1][j]
                             if mn == 0 and mn2 == 1:
                                 movesLeft = movesLeft + 1
                             else:
@@ -836,15 +830,15 @@ class SolitaireMain:
                         pass
                     boundsCheck = j - 1
                     if boundsCheck >= 0: # needs to be drawn from the number of rows eventually
-                        mn = myMatrix[i][j - 1]
+                        mn = self.board[i][j - 1]
                         if mn == 0: # no move directly to the left
                             pass
                         else:
                             pass
                         boundsCheck = j - 2
                         if boundsCheck >= 0:
-                            mn = myMatrix[i][j - 2]
-                            mn2 = myMatrix[i][j - 1]
+                            mn = self.board[i][j - 2]
+                            mn2 = self.board[i][j - 1]
                             if mn == 0 and mn2 == 1:
                                 movesLeft = movesLeft + 1
                             else:
@@ -853,16 +847,16 @@ class SolitaireMain:
                         pass
                     #check right
                     boundsCheck = j + 1
-                    if boundsCheck < myMatrixGridSize: # needs to be drawn from the number of rows eventually
-                        mn = myMatrix[i][j + 1]
+                    if boundsCheck < self.myMatrixGridSize: # needs to be drawn from the number of rows eventually
+                        mn = self.board[i][j + 1]
                         if mn == 0: # no move directly to the right
                             pass
                         else:
                             pass
                         boundsCheck = j + 2
-                        if boundsCheck < myMatrixGridSize:
-                            mn = myMatrix[i][j + 2]
-                            mn2 = myMatrix[i][j + 1]
+                        if boundsCheck < self.myMatrixGridSize:
+                            mn = self.board[i][j + 2]
+                            mn2 = self.board[i][j + 1]
                             if mn == 0 and mn2 == 1:
                                 movesLeft = movesLeft + 1
                             else:
@@ -931,7 +925,7 @@ class SolitaireMain:
         for k in range(7):
             start=292
             for i in range(7):
-                if(myMatrix[k][i]==1):
+                if(self.board[k][i]==1):
                     pngNumber=marbleColor
                     myMatrix_colors[k][i]=pngNumber
                     self.screen.blit(self.marble_images[pngNumber],(start,row))
@@ -941,8 +935,8 @@ class SolitaireMain:
 
         for k in range(7):
             for i in range(7):
-                if(myMatrix[k][i]==3):
-                    myMatrix[k][i]=1
+                if(self.board[k][i]==3):
+                    self.board[k][i]=1
 
 
 
