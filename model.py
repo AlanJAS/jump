@@ -1,19 +1,12 @@
-"""Board and marble state, independent of Pygame and Sugar.
+"""A board stores one numeric matrix and one color for all its marbles.
 
-Coordinates are (row, column). Only Board changes occupancy; picking up a
-marble is a presentation operation and never removes it from the model.
+Cells are EMPTY (0), MARBLE (1), or RESERVED (2).
+Coordinates are always (row, column).
 """
 
 from levels import LEVELS
-from rules import (EMPTY, MARBLE, RESERVED, DIRECTIONS, cell_at, is_valid_move)
-
-
-class Marble:
-    """A marble keeps its identity and appearance when it jumps"""
-
-    def __init__(self, cell, color=0):
-        self.cell = cell
-        self.color = color
+from rules import (MARBLE, DIRECTIONS, apply_move, cell_at, contains,
+                   count_moves, is_valid_move)
 
 
 class Board:
@@ -21,55 +14,43 @@ class Board:
     def __init__(self, layout=None, color=0):
         if layout is None:
             layout = LEVELS[0]
-        self._layout = tuple(tuple(row) for row in layout)
+        self._layout = [list(row) for row in layout]
+        self.color = color
         self.rows, self.columns = len(self._layout), len(self._layout[0])
-        self._marbles = {
-            (row, column): Marble((row, column), color)
-            for row, cells in enumerate(self._layout)
-            for column, value in enumerate(cells) if value == MARBLE
-        }
-
-    def marbles(self):
-        return tuple(self._marbles.values())
-
-    def marble_count(self):
-        return len(self._marbles)
-
-    def marble_at(self, cell):
-        return self._marbles.get(cell)
 
     def getLayout(self):
-        """Return a detached snapshot using the original numeric encoding"""
-        return [[RESERVED if value == RESERVED else
-                 MARBLE if (row, column) in self._marbles else EMPTY
-                 for column, value in enumerate(cells)]
-                for row, cells in enumerate(self._layout)]
+        """Return the live numeric matrix, not a copy."""
+        return self._layout
+
+    def marbles(self):
+        """Return the coordinates of occupied cells."""
+        return tuple((row, column)
+                     for row, cells in enumerate(self._layout)
+                     for column, value in enumerate(cells) if value == MARBLE)
+
+    def marble_count(self):
+        return sum(row.count(MARBLE) for row in self._layout)
+
+    def has_marble(self, cell):
+        return (cell is not None and contains(self._layout, cell) and
+                self._layout[cell[0]][cell[1]] == MARBLE)
 
     def cell_at(self, position):
-        return cell_at(self.getLayout(), position)
+        return cell_at(self._layout, position)
 
     def can_move(self, start, end):
-        return is_valid_move(self.getLayout(), start, end)
+        return is_valid_move(self._layout, start, end)
 
     def legal_moves(self):
-        layout = self.getLayout()
-        for row, column in self._marbles:
+        for row, column in self.marbles():
             for dr, dc in DIRECTIONS:
                 end = row + dr, column + dc
-                if is_valid_move(layout, (row, column), end):
+                if self.can_move((row, column), end):
                     yield (row, column), end
 
     def move_count(self):
-        return sum(1 for _ in self.legal_moves())
+        return count_moves(self._layout)
 
     def move(self, start, end):
-        """Apply a legal jump; an invalid drop leaves all state unchanged"""
-        if not self.can_move(start, end):
-            return False
-        middle = ((start[0] + end[0]) // 2, (start[1] + end[1]) // 2)
-        marble = self._marbles.pop(start)
-        del self._marbles[middle]
-        marble.cell = end
-        self._marbles[end] = marble
-        return True
-
+        """Apply a legal jump; an invalid drop leaves all state unchanged."""
+        return apply_move(self._layout, start, end)

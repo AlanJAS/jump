@@ -37,7 +37,7 @@ except (ImportError, ValueError):
     gtk_present = False
 
 from levels import LEVELS
-from model import Board, Marble
+from model import Board
 from rules import BOARD_ORIGIN, CELL_SIZE
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -152,15 +152,16 @@ class SolitaireMain:
     def pick_marble(self, position):
         if self.game_over or self.help_visible or self.selected is not None:
             return
-        self.selected = self.board.marble_at(self.board.cell_at(position))
-        if self.selected is not None:
+        cell = self.board.cell_at(position)
+        if self.board.has_marble(cell):
+            self.selected = cell
             self.play_sound(self.picked_sound)
 
     def drop_marble(self, position):
-        marble, self.selected = self.selected, None
-        if marble is None:
+        start, self.selected = self.selected, None
+        if start is None:
             return False
-        moved = self.board.move(marble.cell, self.board.cell_at(position))
+        moved = self.board.move(start, self.board.cell_at(position))
         if moved:
             self.play_sound(self.move_sound)
             self.update_moves()
@@ -212,10 +213,10 @@ class SolitaireMain:
             else:
                 self.drop_marble(event.pos)
 
-    def draw_marble(self, marble, position=None):
-        image = self.marble_images[marble.color]
+    def draw_marble(self, cell, position=None):
+        image = self.marble_images[self.board.color]
         if position is None:
-            row, column = marble.cell
+            row, column = cell
             rect = image.get_rect(topleft=(SPRITE_ORIGIN[0] + column * CELL_SIZE,
                                           SPRITE_ORIGIN[1] + row * CELL_SIZE))
         else:
@@ -226,13 +227,13 @@ class SolitaireMain:
         position = pygame.mouse.get_pos()
         self.screen.fill(BROWN_COLOR)
         self.screen.blit(self.background, (0, 0))
-        for marble in self.board.marbles():
-            if marble is not self.selected:
-                self.draw_marble(marble)
+        for cell in self.board.marbles():
+            if cell != self.selected:
+                self.draw_marble(cell)
         if self.selected is not None:
             # Legal targets are derived from exactly the same rules as dropping.
             for start, end in self.board.legal_moves():
-                if start == self.selected.cell:
+                if start == self.selected:
                     row, column = end
                     center = (BOARD_ORIGIN[0] + column * CELL_SIZE + CELL_SIZE // 2,
                               BOARD_ORIGIN[1] + row * CELL_SIZE + CELL_SIZE // 2)
