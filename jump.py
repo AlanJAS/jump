@@ -89,6 +89,7 @@ class SolitaireMain:
     def __init__(self, width=1200, height=825):
         self.width, self.height = width, height
         self.actual_level = 0
+        self.on_level_changed = None
         self.sound_enable = True
         self.clock = pygame.time.Clock()
         self.screen = None
@@ -104,15 +105,19 @@ class SolitaireMain:
             sound.play()
 
     def reset_board(self, level=None):
+        previous_level = self.actual_level
         if level is not None:
             self.actual_level = level
         self.board = Board(LEVELS[self.actual_level], random.randrange(23))
         self.selected = None
+        self.completion_pressed = False
         self.help_visible = False
         self.played_milestones = set()
         self.update_moves()
         if self.assets_loaded:
             self.new_button.pressed = self.help_button.pressed = False
+        if self.actual_level != previous_level and self.on_level_changed is not None:
+            self.on_level_changed(self.actual_level)
 
     def change_level(self, level):
         # Sugar calls this while GTK events are pumped by the existing loop
@@ -125,6 +130,7 @@ class SolitaireMain:
         self.updated_text = self.board.marble_count()
         self.updated_moves = self.board.move_count()
         self.game_over = self.updated_moves == 0
+        self.level_completed = self.updated_text == 1
 
     def load_things(self):
         self.screen = pygame.display.get_surface()
@@ -184,6 +190,9 @@ class SolitaireMain:
         if event.type == pygame.VIDEORESIZE:
             self.screen = pygame.display.set_mode(event.size, pygame.RESIZABLE)
             return
+        if self.level_completed:
+            self.handle_completion_event(event)
+            return
         if self.help_visible:
             if event.type in (pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN):
                 self.help_visible = False
@@ -214,6 +223,58 @@ class SolitaireMain:
                 self.help_visible = True
             else:
                 self.drop_marble(event.pos)
+
+    def completion_rects(self):
+        panel = pygame.Rect(0, 0, min(700, self.screen.get_width() - 40), 300)
+        panel.center = self.screen.get_rect().center
+        button = pygame.Rect(0, 0, min(420, panel.width - 40), 64)
+        button.midbottom = (panel.centerx, panel.bottom - 30)
+        return panel, button
+
+    def continue_after_completion(self):
+        if not self.level_completed:
+            return
+        # On the final level, the button explicitly offers a new game.
+        self.increase_level()
+        self.play_sound(self.new_sound)
+
+    def handle_completion_event(self, event):
+        _, button = self.completion_rects()
+        if event.type == pygame.KEYDOWN:
+            if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER, pygame.K_SPACE):
+                self.continue_after_completion()
+            elif event.key == pygame.K_ESCAPE:
+                self.running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            self.completion_pressed = button.collidepoint(event.pos)
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            activate = self.completion_pressed and button.collidepoint(event.pos)
+            self.completion_pressed = False
+            if activate:
+                self.continue_after_completion()
+
+    def draw_completion(self):
+        panel, button = self.completion_rects()
+        pygame.draw.rect(self.screen, (250, 232, 196), panel, border_radius=18)
+        pygame.draw.rect(self.screen, BROWN_COLOR, panel, 3, border_radius=18)
+        last_level = self.actual_level == len(LEVELS) - 1
+        title = (_('Final level completed!') if last_level else
+                 _('Level %d completed!') % (self.actual_level + 1))
+        label = _('Play again') if last_level else _('Next level')
+        hovered = button.collidepoint(pygame.mouse.get_pos())
+        pygame.draw.rect(self.screen, (115, 64, 34) if hovered else BROWN_COLOR,
+                         button, border_radius=12)
+        lines = ((title, panel.top + 65, BROWN_COLOR),
+                 (_('Well done!'), panel.top + 120, BROWN_COLOR),
+                 (label, button.centery, (255, 245, 225)))
+        for text, y, color in lines:
+            surface = self.font.render(text, True, color)
+            max_width = button.width - 24 if y == button.centery else panel.width - 40
+            if surface.get_width() > max_width:
+                ratio = max_width / surface.get_width()
+                surface = pygame.transform.smoothscale(
+                    surface, (max_width, max(1, int(surface.get_height() * ratio))))
+            self.screen.blit(surface, surface.get_rect(center=(panel.centerx, y)))
 
     def draw_marble(self, cell, position=None):
         image = self.marble_images[self.board.color]
@@ -249,13 +310,16 @@ class SolitaireMain:
         self.screen.blit(self.target_image, (1067, 45))
         self.screen.blit(self.font.render(str(remaining), True, BROWN_COLOR),
                          (1000, 50))
-        if self.game_over:
+        if self.game_over and not self.level_completed:
             self.screen.blit(self.overlay, (0, 0))
         self.new_button.draw(self.screen, position)
         self.help_button.draw(self.screen, position)
         if self.help_visible:
             self.screen.blit(self.overlay, (0, 0))
             self.screen.blit(self.helpscreen, (0, 0))
+        if self.level_completed:
+            self.screen.blit(self.overlay, (0, 0))
+            self.draw_completion()
 
     def SuperLooper(self):
         """Big loop"""

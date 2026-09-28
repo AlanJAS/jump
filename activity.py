@@ -29,6 +29,7 @@ class JumpActivity(activity.Activity):
 
         self.game = jump.SolitaireMain()
         self.build_toolbar()
+        self.game.on_level_changed = self.sync_level_selector
 
         self.game.canvas = self._pygamecanvas = \
             sugargame.canvas.PygameCanvas(self,
@@ -71,7 +72,8 @@ class JumpActivity(activity.Activity):
             _('Solitaire'))
         combo = Combo(levels)
         item2.add(combo)
-        combo.connect('changed', self.change_combo)
+        self.level_combo = combo
+        self.level_combo_handler = combo.connect('changed', self.change_combo)
         toolbar_box.toolbar.insert(item2, -1)
 
         separator2 = Gtk.SeparatorToolItem()
@@ -99,7 +101,16 @@ class JumpActivity(activity.Activity):
 
     def change_combo(self, combo):
         level = combo.get_active()
-        self.game.change_level(level)
+        if level >= 0 and level != self.game.actual_level:
+            self.game.change_level(level)
+
+    def sync_level_selector(self, level):
+        # Updating the toolbar must not reset the board a second time.
+        self.level_combo.handler_block(self.level_combo_handler)
+        try:
+            self.level_combo.set_active(level)
+        finally:
+            self.level_combo.handler_unblock(self.level_combo_handler)
 
     def sound_control(self, button):
         self.sound_enable = not self.sound_enable
