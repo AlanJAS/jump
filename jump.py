@@ -37,9 +37,10 @@ from gettext import gettext as _
 from cur import ARROW_0, ARROW_1, CROSS_0, CROSS_1
 from levels import LEVELS
 
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
+
+FPS = 30
 
 BROWN_COLOR = (88, 47, 27)
 doneTest = 0
@@ -185,8 +186,9 @@ class SolitaireMain:
     def __init__(self, width=1200,height=825):
         self.width = width
         self.height = height
-
         self.actual_level = 0
+        self.clock = pygame.time.Clock()
+        
 
     def change_sound(self, sound):
         global sound_enable
@@ -556,16 +558,15 @@ class SolitaireMain:
                 self.allsprites=pygame.sprite.RenderPlain(button1)
                 self.allsprites.draw(self.screen)
             pygame.display.update()
-            fpsClock.tick(FPS)
+            self.clock.tick(FPS)
 
     def SuperLooper(self):
 
-        global button1,helpoff,marbleColor,next_marble,count,sound_enable,FPS, fpsClock
+        global button1,helpoff,marbleColor,next_marble,count,sound_enable
         rollover_onceN=0
         rollover_onceH=0
         run=1
-        FPS = 30
-        fpsClock = pygame.time.Clock()
+
         for event in pygame.event.get():
             if event.type==pygame.QUIT:
                 return
@@ -609,7 +610,7 @@ class SolitaireMain:
         self.rollover_images.append(load_image("Arrow3.png"))
         self.rollover_images.append(load_image("Arrow4.png"))
         pygame.display.update()
-        fpsClock.tick(FPS)
+        self.clock.tick(FPS)
         while run:
             #condition for checking for mouse arrows
             if(self.updated_text==32):
@@ -719,7 +720,7 @@ class SolitaireMain:
                     self.help_screen()
 
             pygame.display.update()
-            fpsClock.tick(FPS)
+            self.clock.tick(FPS)
 
             if self.updated_text==28 and self.play_sound==False and count==0:
                 if sound_enable:
@@ -776,7 +777,7 @@ class SolitaireMain:
         self.screen.blit(self.alphasurface,self.alphasurfacerect)
         self.screen.blit(self.helpscreen,(0,0))
         pygame.display.update()
-        fpsClock.tick(FPS)
+        self.clock.tick(FPS)
 
         while run:
             while Gtk.events_pending():
