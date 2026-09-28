@@ -1,10 +1,12 @@
-jump
+Jump
 ====
 
 A Marble-Jumping Solitaire Game
 Created by a Team at Carnegie Mellon University.
 
 This game consists of "eat" each "marble" and leaving only one.
+
+![Screenshot](screenshots/jump.png)
 
 How to use?
 -----------
