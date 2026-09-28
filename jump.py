@@ -30,12 +30,12 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 
 import pygame
+from pygame import QUIT, KEYDOWN, MOUSEBUTTONDOWN, MOUSEBUTTONUP, K_ESCAPE
 import random
-from pygame.locals import *
-from cur import *
 from gettext import gettext as _
 
-
+from cur import ARROW_0, ARROW_1, CROSS_0, CROSS_1
+from levels import LEVELS
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -632,7 +632,8 @@ class SolitaireMain:
     def SuperLooper(self):
 
         global button1,helpoff,marbleColor,next_marble,count,sound_enable,FPS, fpsClock
-        rollover_once=0
+        rollover_onceN=0
+        rollover_onceH=0
         run=1
         FPS = 30
         fpsClock = pygame.time.Clock()
@@ -704,22 +705,22 @@ class SolitaireMain:
                     self.displaying_arrow=True
 
 
-            if (button1.rect.collidepoint(pygame.mouse.get_pos()) and rollover_once==0):
-                rollover_once=1
+            if (button1.rect.collidepoint(pygame.mouse.get_pos()) and rollover_onceN==0):
+                rollover_onceN=1
                 self.allsprites.remove(button1)
                 button1 = simple_button(31,614,'NewBoardOn.png',None)
                 self.allsprites=pygame.sprite.RenderPlain(button1)
                 self.allsprites.draw(self.screen)
 
             elif not (button1.rect.collidepoint(pygame.mouse.get_pos())):
-                rollover_once=0
+                rollover_onceN=0
                 self.allsprites.empty()
                 button1 = simple_button(31,614,'NewBoard.png',None)
                 self.allsprites=pygame.sprite.RenderPlain(button1)
                 self.allsprites.draw(self.screen)
 
-            if (helpoff.rect.collidepoint(pygame.mouse.get_pos()) and rollover_once==0):
-                rollover_once=1
+            if (helpoff.rect.collidepoint(pygame.mouse.get_pos()) and rollover_onceH==0):
+                rollover_onceH=1
                 self.allspritess.remove(button1)
                 helpoff = simple_button(970,614,'HelpOn.png',None)
                 self.allspritess=pygame.sprite.RenderPlain(helpoff)
@@ -727,7 +728,7 @@ class SolitaireMain:
 
             elif not (helpoff.rect.collidepoint(pygame.mouse.get_pos())):
 
-                rollover_once=0
+                rollover_onceH=0
                 helpoff = simple_button(970,614,'HelpOff.png',None)
                 self.allspritess=pygame.sprite.RenderPlain(helpoff)
                 self.allspritess.draw(self.screen)
